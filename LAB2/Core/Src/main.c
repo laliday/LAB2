@@ -45,13 +45,19 @@ DMA_HandleTypeDef hdma_adc1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
-typedef struct _data
+uint16_t average_volt;
+uint16_t average_temp;
+uint32_t total_temp;
+uint32_t total_volt;
+float real_temp;
+float real_volt;
+typedef struct Data
 {
-	uint32_t volt;
-	uint32_t temp;
+	uint16_t volt;
+	uint16_t temp;
 }data;
 data buffer[10];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -101,7 +107,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_ADC_Start_DMA(&hadc1,(uint32_t*)buffer,100);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -111,6 +117,27 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  for(uint16_t i = 0;i<10;i++){
+		  if(i==0){
+			  total_temp = 0;
+			  total_volt = 0;
+			  total_volt = total_volt+buffer[i].volt;
+			  total_temp = total_temp+buffer[i].temp;
+		  }
+		  else if(i==9){
+			  total_temp = total_temp + buffer[i].temp;
+			  total_volt = total_volt + buffer[i].volt;
+			  average_temp = total_temp / 10 ;
+			  average_volt = total_volt / 10 ;
+			  real_volt = (((5.0/2936)*1)*average_volt)*1000 ;
+			  real_temp = (((22.0/940)*1)*average_temp)+273;
+		  }
+		  else
+		  {
+			  total_volt = total_volt + buffer[i].volt;
+			  total_temp = total_temp + buffer[i].temp;
+		  }
+	  }
   }
   /* USER CODE END 3 */
 }
@@ -307,11 +334,10 @@ static void MX_GPIO_Init(void)
 /* USER CODE BEGIN 4 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_PIN)
 {
-	HAL_ADC_Start_DMA(&hadc1,(uint32_t*)buffer,20);
+	HAL_ADC_Start_DMA(&hadc1, (uint32_t*)buffer, 20);
 }
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-
 }
 /* USER CODE END 4 */
 
