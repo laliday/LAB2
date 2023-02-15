@@ -138,6 +138,7 @@ int main(void)
 			  total_temp = total_temp + buffer[i].temp;
 		  }
 	  }
+	  HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
